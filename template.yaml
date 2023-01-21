@@ -5,12 +5,30 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 300
-    # MemorySize: 128
+    Timeout: 900
+    MemorySize: 256
     Tracing: Active
 
 
 Resources:
+
+  TimestreamUdqRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      RoleName: 'TimestreamUdqRole'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/AmazonTimestreamReadOnlyAccess'
+
   UdqHelperUtilsLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -22,8 +40,9 @@ Resources:
       BuildMethod: python3.9
 
   UdqDataReaderFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
+      Role: !GetAtt TimestreamUdqRole.Arn
       CodeUri: udq_data_reader/
       Handler: udq_data_reader.lambda_handler
       Runtime: python3.9
@@ -35,3 +54,9 @@ Resources:
         Variables:
           TIMESTREAM_DATABASE_NAME: 'IoTButtonEventDB'
           TIMESTREAM_TABLE_NAME: 'IoTButtonEventTable'
+
+  UdqDataReaderFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${UdqDataReaderFunction}
+      RetentionInDays: 1
