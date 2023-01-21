@@ -12,6 +12,20 @@ Globals:
 
 Resources:
 
+  IoTButtonEventDB:
+    Type: AWS::Timestream::Database
+    Properties: 
+      DatabaseName: 'IoTButtonEventDB'
+
+  IoTButtonEventTable:
+    Type: AWS::Timestream::Table
+    Properties:
+      DatabaseName: !Ref IoTButtonEventDB
+      RetentionProperties:
+        MemoryStoreRetentionPeriodInHours: 24
+        MagneticStoreRetentionPeriodInDays: 365
+      TableName: 'IoTButtonEventTable'
+
   TimestreamUdqRole:
     Type: AWS::IAM::Role
     Properties:
@@ -29,6 +43,55 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
         - 'arn:aws:iam::aws:policy/AmazonTimestreamReadOnlyAccess'
         - 'arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess'
+
+  IoTButtonClickFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      RoleName: 'IoTButtonClickFunctionRole'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess'
+      Policies:
+        - PolicyName: "IoTButtonClickFunctionTimestreamAccessPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "timestream:*"
+                Resource: 
+                  - !GetAtt IoTButtonEventDB.Arn
+
+  IoTButtonClickFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Role: !GetAtt TimestreamUdqRole.Arn
+      CodeUri: IoTButtonClickFunction/
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:16
+      Architectures:
+      - x86_64
+      Environment:
+        Variables:
+          TIMESTREAM_DATABASE_NAME: 'IoTButtonEventDB'
+          TIMESTREAM_TABLE_NAME: 'IoTButtonEventTable'
+
+  IoTButtonClickFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IoTButtonClickFunction}
+      RetentionInDays: 365
 
   UdqHelperUtilsLayer:
     Type: AWS::Serverless::LayerVersion

@@ -1,32 +1,42 @@
 {
-    "componentTypeId": "com.example.timestream-telemetry",
+    "isSingleton": false,
+    "componentTypeId": "com.mysensors.timestream-telemetry",
+    "propertyDefinitions": {
+        "clickCount": {
+            "dataType": {
+                "type": "STRING"
+            },
+            "isTimeSeries": true,
+            "isRequiredInEntity": false,
+            "isExternalId": false,
+            "isStoredExternally": true,
+            "isImported": false,
+            "isFinal": false,
+            "isInherited": false
+        },
+        "temperature": {
+            "dataType": {
+                "type": "DOUBLE"
+            },
+            "isTimeSeries": true,
+            "isRequiredInEntity": false,
+            "isExternalId": false,
+            "isStoredExternally": true,
+            "isImported": false,
+            "isFinal": false,
+            "isInherited": false
+        }
+    },
     "functions": {
         "dataReader": {
             "implementedBy": {
                 "lambda": {
-                    "arn": "{lambdaArn}"
-                }
-            }
+                    "arn": "arn:aws:lambda:ap-northeast-1:579015787862:function:timestreamReaderUDQ-UdqDataReaderFunction-LaWcIJ6xOpCv"
+                },
+                "isNative": false
+            },
+            "isInherited": false
         }
     },
-    "propertyDefinitions": {
-        "telemetryAssetType": {
-            "dataType": {
-                "type": "STRING"
-            },
-            "isExternalId": false,
-            "isStoredExternally": false,
-            "isTimeSeries": false,
-            "isRequiredInEntity": true
-        },
-        "telemetryAssetId": {
-            "dataType": {
-                "type": "STRING"
-            },
-            "isExternalId": true,
-            "isStoredExternally": false,
-            "isTimeSeries": false,
-            "isRequiredInEntity": true
-        }
-    }
+    "componentTypeName": "button-connector"
 }

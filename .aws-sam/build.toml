@@ -10,6 +10,15 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["UdqDataReaderFunction"]
 
+[function_build_definitions.d5d37acd-c5f3-42af-8b13-665782854214]
+codeuri = "/Users/takuya-yn/AWS/timestreamReaderUDQ/IoTButtonClickFunction"
+runtime = "python3.9"
+architecture = "x86_64"
+handler = "lambda_function.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["IoTButtonClickFunction"]
+
 [layer_build_definitions]
 [layer_build_definitions.53c9fd8b-f07e-400d-81fd-406771c1b213]
 layer_name = "UdqHelperUtilsLayer"
