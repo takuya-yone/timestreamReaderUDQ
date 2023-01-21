@@ -25,7 +25,31 @@
             "isImported": false,
             "isFinal": false,
             "isInherited": false
-        }
+        },
+        "placementName": {
+            "dataType": {
+              "type": "STRING"
+            },
+            "isTimeSeries": false,
+            "isRequiredInEntity": true,
+            "isExternalId": false,
+            "isStoredExternally": false,
+            "isImported": false,
+            "isFinal": false,
+            "isInherited": false
+          },
+          "deviceId": {
+            "dataType": {
+              "type": "STRING"
+            },
+            "isTimeSeries": false,
+            "isRequiredInEntity": true,
+            "isExternalId": false,
+            "isStoredExternally": false,
+            "isImported": false,
+            "isFinal": false,
+            "isInherited": false
+          }
     },
     "functions": {
         "dataReader": {

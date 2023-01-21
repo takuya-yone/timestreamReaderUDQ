@@ -3,14 +3,14 @@
 
 import sqlparse
 
+
 class SQLDetector:
-    
+
     def getSubTokenCount(self, token):
         count = 0
         for _ in token.flatten():
             count += 1
         return count
-
 
     def getQueryContext(self, query):
         tokenContext = []
@@ -19,7 +19,6 @@ class SQLDetector:
             for token in statement.tokens:
                 tokenContext.append(self.getSubTokenCount(token))
         return tokenContext
-
 
     def detectInjection(self, sampleQuery, query):
         """Detection potential SQL Injection by comparing token context of sample query and real time query.
@@ -51,6 +50,5 @@ class SQLDetector:
         sampleTokenContext = self.getQueryContext(sampleQuery)
         tokenContext = self.getQueryContext(query)
         if not sampleTokenContext == tokenContext:
-            raise Exception(f'Detected potential injection from query: {query}')
-
-    
+            raise Exception(
+                f'Detected potential injection from query: {query}')

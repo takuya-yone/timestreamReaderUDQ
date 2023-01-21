@@ -19,6 +19,7 @@ TIMESTREAM_TABLE_NAME = os.environ['TIMESTREAM_TABLE_NAME']
 tracer = Tracer()
 logger = Logger()
 
+
 def current_milli_time():
     return round(time.time() * 1000)
 
@@ -28,20 +29,18 @@ def current_milli_time():
 @logger.inject_lambda_context(log_event=False)
 def lambda_handler(event, context):
     # TODO implement
-    
+
     current_time = str(current_milli_time())
-        
+
     deviceInfo = event.get('deviceInfo')
     deviceEvent = event.get('deviceEvent')
     placementInfo = event.get('placementInfo')
-    
-    
 
     session = boto3.Session()
     timestream_client = session.client('timestream-write', region_name='us-east-1',
-                              config=Config(read_timeout=20,    # リクエストタイムアウト(秒)
-                              max_pool_connections=5000,        # 最大接続数
-                              retries={'max_attempts': 10}))    # 最大試行回数
+                                       config=Config(read_timeout=20,    # リクエストタイムアウト(秒)
+                                                     max_pool_connections=5000,        # 最大接続数
+                                                     retries={'max_attempts': 10}))    # 最大試行回数
 
     dimensions = [
         {'Name': 'deviceId', 'Value': deviceInfo['deviceId']},
@@ -55,7 +54,7 @@ def lambda_handler(event, context):
         'MeasureValueType': 'VARCHAR',
         'Time': current_time
     }
-    
+
     clickCount = {
         'Dimensions': dimensions,
         'MeasureName': 'clickCount',
@@ -63,14 +62,14 @@ def lambda_handler(event, context):
         'MeasureValueType': 'BIGINT',
         'Time': current_time
     }
-    
 
-    records = [ clickType, clickCount ]
+    records = [clickType, clickCount]
 
-    result = timestream_client.write_records(DatabaseName=TIMESTREAM_DATABASE_NAME,
-                                    TableName=TIMESTREAM_TABLE_NAME,
-                                    Records=records, CommonAttributes={})
-
+    result = timestream_client.write_records(
+        DatabaseName=TIMESTREAM_DATABASE_NAME,
+        TableName=TIMESTREAM_TABLE_NAME,
+        Records=records,
+        CommonAttributes={})
 
     return {
         'statusCode': 200,

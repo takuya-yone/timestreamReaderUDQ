@@ -7,13 +7,18 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
+
 class EntityComponentPropertyRef():
     """
     Represents an entity-component-property reference that uniquely identifies an AWS IoT TwinMaker property
     Consists of an entityId, componentName, and propertyName
     """
 
-    def __init__(self, entity_id: str, component_name: str, property_name: str):
+    def __init__(
+            self,
+            entity_id: str,
+            component_name: str,
+            property_name: str):
         self.entity_id = entity_id
         self.component_name = component_name
         self.property_name = property_name
@@ -22,7 +27,14 @@ class EntityComponentPropertyRef():
         return hash((self.entity_id, self.component_name, self.property_name))
 
     def __eq__(self, other):
-        return (self.entity_id, self.component_name, self.property_name) == (other.entity_id, other.component_name, other.property_name)
+        return (
+            self.entity_id,
+            self.component_name,
+            self.property_name) == (
+            other.entity_id,
+            other.component_name,
+            other.property_name)
+
 
 class ExternalIdPropertyRef():
     """
@@ -35,10 +47,18 @@ class ExternalIdPropertyRef():
         self.property_name = property_name
 
     def __hash__(self):
-        return hash((json.dumps(self.external_id_property), self.property_name))
+        return hash(
+            (json.dumps(
+                self.external_id_property),
+                self.property_name))
 
     def __eq__(self, other):
-        return (self.external_id_property, self.property_name) == (other.external_id_property, other.property_name)
+        return (
+            self.external_id_property,
+            self.property_name) == (
+            other.external_id_property,
+            other.property_name)
+
 
 class IoTTwinMakerReference():
     """
@@ -46,7 +66,8 @@ class IoTTwinMakerReference():
     May include an EntityComponentPropertyRef or an ExternalIdPropertyRef
     """
 
-    def __init__(self, ecp: EntityComponentPropertyRef = None, eip: ExternalIdPropertyRef = None):
+    def __init__(self, ecp: EntityComponentPropertyRef = None,
+                 eip: ExternalIdPropertyRef = None):
         self.ecp = ecp
         self.eip = eip
 
@@ -68,8 +89,6 @@ class IoTTwinMakerReference():
         return ret
 
 
-
-
 class IoTTwinMakerUnifiedDataQuery(ABC):
     """
     main entry point to UDQ wrapper, handles request/response unmarshalling/marshalling
@@ -80,41 +99,50 @@ class IoTTwinMakerUnifiedDataQuery(ABC):
     def process_query(self, lambda_event):
         from udq_utils.udq import SingleEntityReader, MultiEntityReader
 
-        # parse the raw lambda event into a structured IoTTwinMakerUdqRequest request object
+        # parse the raw lambda event into a structured IoTTwinMakerUdqRequest
+        # request object
         request = IoTTwinMakerUdqRequest.parse(lambda_event)
 
-        # invoke the approriate entity reader function based on the request, or throw error if not supported
+        # invoke the approriate entity reader function based on the request, or
+        # throw error if not supported
         if (isinstance(request, IoTTwinMakerUDQEntityRequest)):
             if isinstance(self, SingleEntityReader):
                 udq_response = self.entity_query(request)
             else:
-                raise NotImplementedError(f"Received entity request but this processor ({self.__class__.__name__}) doesn't support it")
+                raise NotImplementedError(
+                    f"Received entity request but this processor ({self.__class__.__name__}) doesn't support it")
         elif (isinstance(request, IoTTwinMakerUDQComponentTypeRequest)):
             if isinstance(self, MultiEntityReader):
                 udq_response = self.component_type_query(request)
             else:
-                raise NotImplementedError(f"Received component type request but this processor ({self.__class__.__name__}) doesn't support it")
+                raise NotImplementedError(
+                    f"Received component type request but this processor ({self.__class__.__name__}) doesn't support it")
         else:
-            raise NotImplementedError(f"Received unknown UDQ request type: {lambda_event}")
+            raise NotImplementedError(
+                f"Received unknown UDQ request type: {lambda_event}")
 
-        # inline helper to marshall python native types into common IoT TwinMaker types
+        # inline helper to marshall python native types into common IoT
+        # TwinMaker types
         def serialize_value(val):
-            if type(val) is str:
+            if isinstance(val, str):
                 return {
                     'stringValue': val
                 }
-            elif type(val) is float:
+            elif isinstance(val, float):
                 return {
-                    'doubleValue': str(val) # Note: the UDQ interface expects string value returns instead of JSON-native types
+                    # Note: the UDQ interface expects string value returns
+                    # instead of JSON-native types
+                    'doubleValue': str(val)
                 }
-            elif type(val) is bool:
+            elif isinstance(val, bool):
                 return {
                     'booleanValue': str(val)
                 }
             else:
                 assert False
 
-        # marshall data rows into property values grouped by entityPropertyReference
+        # marshall data rows into property values grouped by
+        # entityPropertyReference
         entity_prop_ref_to_values = {}
         for row in udq_response.rows:
             ref = row.get_iottwinmaker_reference()
@@ -128,7 +156,8 @@ class IoTTwinMakerUnifiedDataQuery(ABC):
                 'value': serialize_value(row.get_value())
             })
 
-        # marshall the entity_prop_ref_to_values into response propertyValues structure
+        # marshall the entity_prop_ref_to_values into response propertyValues
+        # structure
         property_values = []
         for ref in entity_prop_ref_to_values:
             property_values.append({
@@ -139,12 +168,13 @@ class IoTTwinMakerUnifiedDataQuery(ABC):
         # marshall propertyValues and nextToken into final UDQ response
         return {
             'propertyValues': property_values,
-            'nextToken': udq_response.next_token if udq_response.next_token else None
-        }
+            'nextToken': udq_response.next_token if udq_response.next_token else None}
+
 
 class OrderBy(Enum):
     ASCENDING = 1
     DESCENDING = 2
+
 
 class IoTTwinMakerUdqRequest():
     """
@@ -163,51 +193,63 @@ class IoTTwinMakerUdqRequest():
     def validate_timestamp(seconds_since_epoch):
         try:
             datetime.utcfromtimestamp(seconds_since_epoch).isoformat()
-        except:
-            raise Exception("Timestamp[{}] could not be converted to IS8601".format(seconds_since_epoch))
+        except BaseException:
+            raise Exception(
+                "Timestamp[{}] could not be converted to IS8601".format(seconds_since_epoch))
 
     def __init__(self, event):
         self._event = event
 
-        self._udq_context = {
-            'workspace_id': IoTTwinMakerUdqRequest.get_required_field(event, 'workspaceId'),
-            'properties': self._event['properties']
-        }
+        self._udq_context = {'workspace_id': IoTTwinMakerUdqRequest.get_required_field(
+            event, 'workspaceId'), 'properties': self._event['properties']}
 
         self._entityId = event.get('entityId')
         self._componentName = event.get('componentName')
         # entityId and componentName must both appear if at all
-        if (self._entityId and not self._componentName) or (not self._entityId and self._componentName):
+        if (self._entityId and not self._componentName) or (
+                not self._entityId and self._componentName):
             raise Exception("EntityId and componentName must show up together")
 
         self._componentTypeId = event.get('componentTypeId')
 
-        self._selectedProperties = IoTTwinMakerUdqRequest.get_required_field(event, 'selectedProperties')
+        self._selectedProperties = IoTTwinMakerUdqRequest.get_required_field(
+            event, 'selectedProperties')
 
         # validate the selected properties
         # verify each selected property is in the properties map from the event
         allowed_props = self._udq_context['properties'].keys()
-        if(len(self._selectedProperties) < 1):
-            raise Exception('Unexpected selectedProperties[{}]'.format(self._selectedProperties))
+        if (len(self._selectedProperties) < 1):
+            raise Exception(
+                'Unexpected selectedProperties[{}]'.format(
+                    self._selectedProperties))
         for selectedProperty in self._selectedProperties:
-            # Note: component definition only provided from TwinMaker for single-entity requests
+            # Note: component definition only provided from TwinMaker for
+            # single-entity requests
             if self._componentTypeId is None and selectedProperty not in allowed_props:
-                raise Exception(f"selectedProperty: {selectedProperty} not found in entity/component definition. Allowed properties: {allowed_props}")
+                raise Exception(
+                    f"selectedProperty: {selectedProperty} not found in entity/component definition. Allowed properties: {allowed_props}")
 
-        # deprecated: only used while startDateTime/endDateTime not yet replaced with startTime/endTime
+        # deprecated: only used while startDateTime/endDateTime not yet
+        # replaced with startTime/endTime
         def get_optional_datetime_field(event, field_name):
-            time_in_sec = IoTTwinMakerUdqRequest.get_required_field(event, field_name)
+            time_in_sec = IoTTwinMakerUdqRequest.get_required_field(
+                event, field_name)
             try:
                 return datetime.utcfromtimestamp(time_in_sec)
-            except:
+            except BaseException:
                 return None
 
-        # optional since these fields are being replaced with startTime / endTime for better time precision
-        self._startDateTime = get_optional_datetime_field(self._event, 'startDateTime')
-        self._endDateTime = get_optional_datetime_field(self._event, 'endDateTime')
+        # optional since these fields are being replaced with startTime /
+        # endTime for better time precision
+        self._startDateTime = get_optional_datetime_field(
+            self._event, 'startDateTime')
+        self._endDateTime = get_optional_datetime_field(
+            self._event, 'endDateTime')
 
-        self._startTime = IoTTwinMakerUdqRequest.get_required_field(self._event, 'startTime')
-        self._endTime = IoTTwinMakerUdqRequest.get_required_field(self._event, 'endTime')
+        self._startTime = IoTTwinMakerUdqRequest.get_required_field(
+            self._event, 'startTime')
+        self._endTime = IoTTwinMakerUdqRequest.get_required_field(
+            self._event, 'endTime')
 
         self._nextToken = event.get('nextToken')
         self._maxRows = event.get('maxResults')
@@ -318,7 +360,6 @@ class IoTTwinMakerUdqRequest():
         """
         return self._property_filters
 
-
     @staticmethod
     def parse(event):
         if 'entityId' in event:
@@ -331,6 +372,7 @@ class IoTTwinMakerUDQEntityRequest(IoTTwinMakerUdqRequest):
     """
     Models an entity-level request (currently more of a placeholder for specialized fields)
     """
+
     def __init__(self, event):
         super().__init__(event)
 
@@ -339,5 +381,6 @@ class IoTTwinMakerUDQComponentTypeRequest(IoTTwinMakerUdqRequest):
     """
     Models an component-type-level request (currently more of a placeholder for specialized fields)
     """
+
     def __init__(self, event):
         super().__init__(event)

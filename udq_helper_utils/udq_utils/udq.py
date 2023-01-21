@@ -88,7 +88,10 @@ class IoTTwinMakerUdqResponse:
     It consists of a List of Connector Author implemented IoTTwinMakerDataRow and optional nextToken for pagination
     """
 
-    def __init__(self, rows: List[IoTTwinMakerDataRow], next_token: str = None):
+    def __init__(
+            self,
+            rows: List[IoTTwinMakerDataRow],
+            next_token: str = None):
         self._rows = rows
         self._next_token = next_token
 
@@ -111,7 +114,9 @@ class SingleEntityReader(IoTTwinMakerUnifiedDataQuery, ABC):
     Connector authors must implement the entity_query function
     """
     @abstractmethod
-    def entity_query(self, request: IoTTwinMakerUDQEntityRequest) -> IoTTwinMakerUdqResponse:
+    def entity_query(
+            self,
+            request: IoTTwinMakerUDQEntityRequest) -> IoTTwinMakerUdqResponse:
         raise NotImplementedError("entity_query not implemented")
 
 
@@ -122,5 +127,7 @@ class MultiEntityReader(IoTTwinMakerUnifiedDataQuery, ABC):
     Connector authors must implement the component_type_query function
     """
     @abstractmethod
-    def component_type_query(self, request: IoTTwinMakerUDQComponentTypeRequest) -> IoTTwinMakerUdqResponse:
+    def component_type_query(
+            self,
+            request: IoTTwinMakerUDQComponentTypeRequest) -> IoTTwinMakerUdqResponse:
         raise NotImplementedError("component_type_query not implemented")
