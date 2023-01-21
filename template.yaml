@@ -70,11 +70,15 @@ Resources:
                   - "timestream:*"
                 Resource: 
                   - !GetAtt IoTButtonEventDB.Arn
+                  - !GetAtt IoTButtonEventTable.Arn
+              - Effect: Allow
+                Action: timestream:DescribeEndpoints
+                Resource: "*"
 
   IoTButtonClickFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Role: !GetAtt TimestreamUdqRole.Arn
+      Role: !GetAtt IoTButtonClickFunctionRole.Arn
       CodeUri: IoTButtonClickFunction/
       Handler: lambda_function.lambda_handler
       Runtime: python3.9

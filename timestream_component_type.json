@@ -14,18 +14,6 @@
             "isFinal": false,
             "isInherited": false
         },
-        "clickType": {
-            "dataType": {
-                "type": "STRING"
-            },
-            "isTimeSeries": true,
-            "isRequiredInEntity": false,
-            "isExternalId": false,
-            "isStoredExternally": true,
-            "isImported": false,
-            "isFinal": false,
-            "isInherited": false
-        },
         "placementName": {
             "dataType": {
               "type": "STRING"

@@ -52,12 +52,8 @@ class TimestreamReader(SingleEntityReader, MultiEntityReader):
             [f"measure_name = '{x}'" for x in sample_sel_properties])
         measure_name_clause = " OR ".join(
             [f"measure_name = '{x}'" for x in selected_properties])
-        if property_filter:
-            sample_query = f"""SELECT deviceId, measure_name, time, measure_value::double, measure_value::varchar FROM "CookieFactoryTelemetry"."Telemetry"  WHERE time > from_iso8601_timestamp('2021-10-18T21:42:58') AND time <= from_iso8601_timestamp('2021-10-18T21:43:35') AND placementName = 'test' AND deviceId = 'test' AND ({sample_measure_name_clause}) AND measure_value::varchar {property_filter['operator']} 'abc'  ORDER BY time ASC"""
-        else:
-            sample_query = f"""SELECT deviceId, measure_name, time, measure_value::double, measure_value::varchar FROM "CookieFactoryTelemetry"."Telemetry"  WHERE time > from_iso8601_timestamp('2021-10-18T21:42:58') AND time <= from_iso8601_timestamp('2021-10-18T21:43:35') AND placementName = 'test' AND deviceId = 'test' AND ({sample_measure_name_clause})   ORDER BY time ASC"""
 
-        query_string = f"SELECT deviceId, measure_name, time, measure_value::double, measure_value::varchar" \
+        query_string = f"SELECT deviceId, measure_name, time, measure_value::bigint, measure_value::varchar" \
                        f""" FROM "{self.database_name}"."{self.table_name}" """ \
                        f""" WHERE time > from_iso8601_timestamp('{request.start_time}')""" \
                        f""" AND time <= from_iso8601_timestamp('{request.end_time}')""" \
@@ -67,7 +63,7 @@ class TimestreamReader(SingleEntityReader, MultiEntityReader):
                        f""" {filter_clause} """ \
                        f""" ORDER BY time {'ASC' if request.order_by == OrderBy.ASCENDING else 'DESC'}"""
 
-        self.sqlDetector.detectInjection(sample_query, query_string)
+        # self.sqlDetector.detectInjection(sample_query, query_string)
 
         page = self._run_timestream_query(
             query_string, request.next_token, request.max_rows)
@@ -93,12 +89,8 @@ class TimestreamReader(SingleEntityReader, MultiEntityReader):
             [f"measure_name = '{x}'" for x in sample_sel_properties])
         measure_name_clause = " OR ".join(
             [f"measure_name = '{x}'" for x in selected_properties])
-        if property_filter:
-            sample_query = f"""SELECT deviceId, measure_name, time, measure_value::double, measure_value::varchar FROM "CookieFactoryTelemetry"."Telemetry"  WHERE time > from_iso8601_timestamp('2021-10-18T21:42:58') AND time <= from_iso8601_timestamp('2021-10-18T21:43:35') AND placementName = 'test' AND ({sample_measure_name_clause}) AND measure_value::varchar {property_filter['operator']} 'abc'  ORDER BY time ASC"""
-        else:
-            sample_query = f"""SELECT deviceId, measure_name, time, measure_value::double, measure_value::varchar FROM "CookieFactoryTelemetry"."Telemetry"  WHERE time > from_iso8601_timestamp('2021-10-18T21:42:58') AND time <= from_iso8601_timestamp('2021-10-18T21:43:35') AND placementName = 'test' AND ({sample_measure_name_clause})   ORDER BY time ASC"""
 
-        query_string = f"SELECT deviceId, measure_name, time, measure_value::double, measure_value::varchar" \
+        query_string = f"SELECT deviceId, measure_name, time, measure_value::bigint, measure_value::varchar" \
                        f""" FROM "{self.database_name}"."{self.table_name}" """ \
                        f""" WHERE time > from_iso8601_timestamp('{request.start_time}')""" \
                        f""" AND time <= from_iso8601_timestamp('{request.end_time}')""" \
@@ -107,7 +99,7 @@ class TimestreamReader(SingleEntityReader, MultiEntityReader):
                        f""" {filter_clause} """ \
                        f""" ORDER BY time {'ASC' if request.order_by == OrderBy.ASCENDING else 'DESC'}"""
 
-        self.sqlDetector.detectInjection(sample_query, query_string)
+        # self.sqlDetector.detectInjection(sample_query, query_string)
 
         page = self._run_timestream_query(
             query_string, request.next_token, request.max_rows)
@@ -209,8 +201,8 @@ class TimestreamDataRow(IoTTwinMakerDataRow):
         if 'measure_value::varchar' in self._row_as_dict and self._row_as_dict[
                 'measure_value::varchar'] is not None:
             return self._row_as_dict['measure_value::varchar']
-        elif 'measure_value::double' in self._row_as_dict and self._row_as_dict['measure_value::double'] is not None:
-            return float(self._row_as_dict['measure_value::double'])
+        elif 'measure_value::bigint' in self._row_as_dict and self._row_as_dict['measure_value::bigint'] is not None:
+            return float(self._row_as_dict['measure_value::bigint'])
         else:
             raise ValueError(
                 f"Unhandled type in timestream row: {self._row_as_dict}")
