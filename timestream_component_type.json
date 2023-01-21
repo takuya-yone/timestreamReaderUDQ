@@ -14,9 +14,9 @@
             "isFinal": false,
             "isInherited": false
         },
-        "temperature": {
+        "clickType": {
             "dataType": {
-                "type": "DOUBLE"
+                "type": "STRING"
             },
             "isTimeSeries": true,
             "isRequiredInEntity": false,
@@ -31,7 +31,7 @@
         "dataReader": {
             "implementedBy": {
                 "lambda": {
-                    "arn": "arn:aws:lambda:ap-northeast-1:579015787862:function:timestreamReaderUDQ-UdqDataReaderFunction-LaWcIJ6xOpCv"
+                    "arn": "arn:aws:lambda:us-east-1:579015787862:function:timestreamReaderUDQ-UdqDataReaderFunction-EwDyGk2Xw0vX"
                 },
                 "isNative": false
             },
