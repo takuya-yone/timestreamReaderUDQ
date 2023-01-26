@@ -36,6 +36,10 @@ def lambda_handler(event, context):
     deviceEvent = event.get('deviceEvent')
     placementInfo = event.get('placementInfo')
 
+    logger.info(deviceInfo)
+    logger.info(placementInfo)
+    logger.info(deviceEvent)
+
     session = boto3.Session()
     timestream_client = session.client('timestream-write', region_name='us-east-1',
                                        config=Config(read_timeout=20,    # リクエストタイムアウト(秒)
@@ -44,7 +48,7 @@ def lambda_handler(event, context):
 
     dimensions = [
         {'Name': 'deviceId', 'Value': deviceInfo['deviceId']},
-        {'Name': 'placementName', 'Value': deviceInfo['attributes']['placementName']},
+        {'Name': 'placementName', 'Value': placementInfo['attributes']['placementName']},
     ]
 
     clickType = {
@@ -64,6 +68,7 @@ def lambda_handler(event, context):
     }
 
     records = [clickType, clickCount]
+    # records = [clickCount]
 
     result = timestream_client.write_records(
         DatabaseName=TIMESTREAM_DATABASE_NAME,
